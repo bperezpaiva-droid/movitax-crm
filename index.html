@@ -76,7 +76,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 .sbox .si{position:absolute;left:11px;top:50%;transform:translateY(-50%);font-size:15px;color:var(--muted)}
 .sbox input{width:100%;height:36px;padding:0 12px 0 34px;border:1px solid var(--border-med);border-radius:var(--r);font-size:13px;background:var(--surface);color:var(--text);font-family:'DM Sans',sans-serif}
 .sbox input:focus{outline:none;border-color:var(--green);box-shadow:0 0 0 3px rgba(29,158,117,0.12)}
-.pill{height:32px;padding:0 14px;border-radius:20px;border:1px solid var(--border-med);background:var(--surface);font-size:12px;font-weight:500;color:var(--muted);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .1s}
+.pill{height:32px;padding:0 14px;border-radius:20px;border:1px solid var(--border-med);background:var(--surface);font-size:12px;font-weight:500;color:var(--muted);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .1s;display:inline-flex;align-items:center;justify-content:center;vertical-align:middle}
 .pill.active{background:var(--green);color:#fff;border-color:var(--green)}
 .pill:hover:not(.active){background:var(--bg);color:var(--text)}
 
@@ -306,15 +306,7 @@ tr:hover td{background:#FAFAF8}
           <p style="font-size:12px;color:var(--muted);margin-bottom:1rem">Solo el administrador puede gestionar usuarios.</p>
           <div id="users-list"></div>
         </div>
-        <div class="sec-card">
-          <h3>➕ Añadir usuario</h3>
-          <div style="display:grid;grid-template-columns:1fr 1fr auto auto;gap:8px;align-items:end">
-            <div><label style="font-size:11px;font-weight:500;color:var(--muted);display:block;margin-bottom:4px">Usuario</label><input id="nu" type="text" placeholder="nombre" style="width:100%;height:36px;border:1px solid var(--border-med);border-radius:var(--r);padding:0 10px;font-size:13px;font-family:'DM Sans',sans-serif"></div>
-            <div><label style="font-size:11px;font-weight:500;color:var(--muted);display:block;margin-bottom:4px">Contraseña</label><input id="np" type="text" placeholder="contraseña" style="width:100%;height:36px;border:1px solid var(--border-med);border-radius:var(--r);padding:0 10px;font-size:13px;font-family:'DM Sans',sans-serif"></div>
-            <div><label style="font-size:11px;font-weight:500;color:var(--muted);display:block;margin-bottom:4px">Rol</label><select id="nr" style="height:36px;border:1px solid var(--border-med);border-radius:var(--r);padding:0 10px;font-size:13px;font-family:'DM Sans',sans-serif"><option value="conductor">Conductor</option><option value="admin">Admin</option></select></div>
-            <button class="btn btn-green" onclick="addUser()">Añadir</button>
-          </div>
-        </div>
+
       </div>
 
     </main>
