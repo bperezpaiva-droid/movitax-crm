@@ -585,7 +585,7 @@ function renderTabla() {
       <td><span class="rnum">${r.num}</span></td>
       <td>${r.recogida||'—'}</td>
       <td>${r.destino||'—'}</td>
-      <td style="white-space:nowrap">${fecha||'—'}</td>
+      <td style="white-space:nowrap">${fecha||'—'}${fecha&&fecha.toLowerCase().includes('antes')&&r.recibido?`<br><span style="font-size:11px;color:var(--muted)">Recibido: ${r.recibido}</span>`:''}</td>
       <td style="white-space:nowrap">${hora||'—'}</td>
       <td><span class="badge ${bc}">${label}</span></td>
       <td style="font-size:12px;color:var(--muted)">${r.conductor||'—'}</td>
@@ -609,7 +609,7 @@ function renderTabla() {
       <div class="mcard-header"><span class="mcard-num">${r.num}</span><span class="badge ${bc}">${r.estado}</span></div>
       <div class="mcard-row"><span class="mcard-label">Recogida</span><span class="mcard-val">${r.recogida||'—'}</span></div>
       <div class="mcard-row"><span class="mcard-label">Destino</span><span class="mcard-val">${r.destino||'—'}</span></div>
-      <div class="mcard-row"><span class="mcard-label">Fecha</span><span class="mcard-val">${fecha} ${hora}</span></div>
+      <div class="mcard-row"><span class="mcard-label">Fecha</span><span class="mcard-val">${fecha&&fecha.toLowerCase().includes('antes')&&r.recibido?fecha+'<br><small style="color:var(--muted)">Recibido: '+r.recibido+'</small>':fecha+' '+hora}</span></div>
       ${r.conductor?`<div class="mcard-row"><span class="mcard-label">Conductor</span><span class="mcard-val">${r.conductor}</span></div>`:''}
       ${acc?`<div class="mcard-footer"><div></div>${acc}</div>`:''}
     </div>`;
@@ -653,7 +653,7 @@ function renderMis() {
       <div class="mcard-header"><span class="mcard-num">${r.num}</span><span class="badge ${bc}">${r.estado}</span></div>
       <div class="mcard-row"><span class="mcard-label">Recogida</span><span class="mcard-val">${r.recogida||'—'}</span></div>
       <div class="mcard-row"><span class="mcard-label">Destino</span><span class="mcard-val">${r.destino||'—'}</span></div>
-      <div class="mcard-row"><span class="mcard-label">Fecha</span><span class="mcard-val">${fecha} ${hora}</span></div>
+      <div class="mcard-row"><span class="mcard-label">Fecha</span><span class="mcard-val">${fecha&&fecha.toLowerCase().includes('antes')&&r.recibido?fecha+'<br><small style="color:var(--muted)">Recibido: '+r.recibido+'</small>':fecha+' '+hora}</span></div>
       ${r.taxi?`<div class="mcard-row"><span class="mcard-label">Nº Taxi</span><span class="mcard-val">${r.taxi}</span></div>`:''}
       ${r.precio?`<div class="mcard-row"><span class="mcard-label">Precio</span><span class="mcard-val" style="font-weight:600;color:var(--green-dark)">${r.precio} €</span></div>`:''}
       ${acc?`<div class="mcard-footer"><div></div>${acc}</div>`:''}
