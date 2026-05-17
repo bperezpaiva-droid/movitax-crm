@@ -76,7 +76,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 .sbox .si{position:absolute;left:11px;top:50%;transform:translateY(-50%);font-size:15px;color:var(--muted)}
 .sbox input{width:100%;height:36px;padding:0 12px 0 34px;border:1px solid var(--border-med);border-radius:var(--r);font-size:13px;background:var(--surface);color:var(--text);font-family:'DM Sans',sans-serif}
 .sbox input:focus{outline:none;border-color:var(--green);box-shadow:0 0 0 3px rgba(29,158,117,0.12)}
-.pill{height:32px;padding:0 14px;border-radius:20px;border:1px solid var(--border-med);background:var(--surface);font-size:12px;font-weight:500;color:var(--muted);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .1s}
+.pill{height:32px;padding:0 14px;border-radius:20px;border:1px solid var(--border-med);background:var(--surface);font-size:12px;font-weight:500;color:var(--muted);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .1s;display:inline-flex;align-items:center;justify-content:center;vertical-align:middle}
 .pill.active{background:var(--green);color:#fff;border-color:var(--green)}
 .pill:hover:not(.active){background:var(--bg);color:var(--text)}
 
@@ -306,15 +306,7 @@ tr:hover td{background:#FAFAF8}
           <p style="font-size:12px;color:var(--muted);margin-bottom:1rem">Solo el administrador puede gestionar usuarios.</p>
           <div id="users-list"></div>
         </div>
-        <div class="sec-card">
-          <h3>➕ Añadir usuario</h3>
-          <div style="display:grid;grid-template-columns:1fr 1fr auto auto;gap:8px;align-items:end">
-            <div><label style="font-size:11px;font-weight:500;color:var(--muted);display:block;margin-bottom:4px">Usuario</label><input id="nu" type="text" placeholder="nombre" style="width:100%;height:36px;border:1px solid var(--border-med);border-radius:var(--r);padding:0 10px;font-size:13px;font-family:'DM Sans',sans-serif"></div>
-            <div><label style="font-size:11px;font-weight:500;color:var(--muted);display:block;margin-bottom:4px">Contraseña</label><input id="np" type="text" placeholder="contraseña" style="width:100%;height:36px;border:1px solid var(--border-med);border-radius:var(--r);padding:0 10px;font-size:13px;font-family:'DM Sans',sans-serif"></div>
-            <div><label style="font-size:11px;font-weight:500;color:var(--muted);display:block;margin-bottom:4px">Rol</label><select id="nr" style="height:36px;border:1px solid var(--border-med);border-radius:var(--r);padding:0 10px;font-size:13px;font-family:'DM Sans',sans-serif"><option value="conductor">Conductor</option><option value="admin">Admin</option></select></div>
-            <button class="btn btn-green" onclick="addUser()">Añadir</button>
-          </div>
-        </div>
+
       </div>
 
     </main>
@@ -380,6 +372,7 @@ function doLogin() {
     setTimeout(()=>e.style.display='none',3000); return;
   }
   currentUser = found;
+  localStorage.setItem('mtx_session', JSON.stringify(found));
   document.getElementById('login-page').style.display = 'none';
   document.getElementById('app-page').style.display   = 'block';
   const ini = found.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
@@ -388,12 +381,20 @@ function doLogin() {
   document.getElementById('ua-role').textContent = found.role==='admin'?'Administrador':'Conductor';
   document.getElementById('nav-admin').style.display = found.role==='admin'?'flex':'none';
   document.getElementById('nav-sheet').style.display = found.role==='admin'?'flex':'none';
+  document.getElementById('bn-admin').style.display  = found.role==='admin'?'flex':'none';
+  document.querySelectorAll('.admin-only').forEach(el => el.style.display = found.role==='admin'?'inline-flex':'none');
+  if(found.role !== 'admin') {
+    document.getElementById('label-total').textContent = 'Disponibles';
+    document.getElementById('label-acep').textContent  = 'Mis aceptadas';
+    document.getElementById('label-comp').textContent  = 'Mis completadas';
+  }
   cargar();
 }
 document.getElementById('l-pass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
 
 function doLogout() {
   currentUser=null; reservas=[];
+  localStorage.removeItem('mtx_session');
   document.getElementById('app-page').style.display='none';
   document.getElementById('login-page').style.display='flex';
   document.getElementById('l-pass').value='';
@@ -518,9 +519,27 @@ function renderTabla() {
     const est=r.estado.toLowerCase();
     // Conductores solo ven pendientes
     if(!esAdmin && (est==='aceptada'||est==='completada'||est==='cancelada')) return false;
-    const okF=filtro==='todos'||(filtro==='pendiente'&&est==='pendiente')||(filtro==='aceptada'&&est==='aceptada')||(filtro==='completada'&&est==='completada');
+    const okF=filtro==='todos'||(filtro==='pendiente'&&est==='pendiente')||(filtro==='aceptada'&&est==='aceptada')||(filtro==='completada'&&est==='completada')||(filtro==='cancelada'&&est==='cancelada');
     const okQ=!q||r.num.includes(q)||r.recogida.toLowerCase().includes(q)||r.destino.toLowerCase().includes(q);
     return okF&&okQ;
+  }).sort((a,b)=>{
+    const aAntes = (a.fechaHora||'').toLowerCase().includes('antes');
+    const bAntes = (b.fechaHora||'').toLowerCase().includes('antes');
+
+    const parseFecha = fh => {
+      if(!fh) return Infinity;
+      const m = fh.match(/(\d{2})\/(\d{2})\/(\d{4})(?:\s*(\d{2}):(\d{2}))?/);
+      if(!m) return Infinity;
+      return new Date(m[3], m[2]-1, m[1], m[4]||0, m[5]||0).getTime();
+    };
+
+    // Si los dos son "lo antes posible" ordenar por fecha recibido
+    if(aAntes && bAntes) return parseFecha(a.recibido) - parseFecha(b.recibido);
+    // "Lo antes posible" siempre antes que los que tienen fecha
+    if(aAntes && !bAntes) return -1;
+    if(!aAntes && bAntes) return 1;
+    // Los que tienen fecha, ordenar por fecha de servicio
+    return parseFecha(a.fechaHora) - parseFecha(b.fechaHora);
   });
 
   if(esAdmin) {
@@ -561,7 +580,7 @@ function renderTabla() {
       <td><span class="rnum">${r.num}</span></td>
       <td>${r.recogida||'—'}</td>
       <td>${r.destino||'—'}</td>
-      <td style="white-space:nowrap">${fecha||'—'}</td>
+      <td style="white-space:nowrap">${fecha||'—'}${fecha&&fecha.toLowerCase().includes('antes')&&r.recibido?`<br><span style="font-size:11px;color:var(--muted)">Recibido: ${r.recibido}</span>`:''}</td>
       <td style="white-space:nowrap">${hora||'—'}</td>
       <td><span class="badge ${bc}">${label}</span></td>
       <td style="font-size:12px;color:var(--muted)">${r.conductor||'—'}</td>
@@ -585,7 +604,7 @@ function renderTabla() {
       <div class="mcard-header"><span class="mcard-num">${r.num}</span><span class="badge ${bc}">${r.estado}</span></div>
       <div class="mcard-row"><span class="mcard-label">Recogida</span><span class="mcard-val">${r.recogida||'—'}</span></div>
       <div class="mcard-row"><span class="mcard-label">Destino</span><span class="mcard-val">${r.destino||'—'}</span></div>
-      <div class="mcard-row"><span class="mcard-label">Fecha</span><span class="mcard-val">${fecha} ${hora}</span></div>
+      <div class="mcard-row"><span class="mcard-label">Fecha</span><span class="mcard-val">${fecha&&fecha.toLowerCase().includes('antes')&&r.recibido?fecha+'<br><small style="color:var(--muted)">Recibido: '+r.recibido+'</small>':fecha+' '+hora}</span></div>
       ${r.conductor?`<div class="mcard-row"><span class="mcard-label">Conductor</span><span class="mcard-val">${r.conductor}</span></div>`:''}
       ${acc?`<div class="mcard-footer"><div></div>${acc}</div>`:''}
     </div>`;
@@ -629,7 +648,7 @@ function renderMis() {
       <div class="mcard-header"><span class="mcard-num">${r.num}</span><span class="badge ${bc}">${r.estado}</span></div>
       <div class="mcard-row"><span class="mcard-label">Recogida</span><span class="mcard-val">${r.recogida||'—'}</span></div>
       <div class="mcard-row"><span class="mcard-label">Destino</span><span class="mcard-val">${r.destino||'—'}</span></div>
-      <div class="mcard-row"><span class="mcard-label">Fecha</span><span class="mcard-val">${fecha} ${hora}</span></div>
+      <div class="mcard-row"><span class="mcard-label">Fecha</span><span class="mcard-val">${fecha&&fecha.toLowerCase().includes('antes')&&r.recibido?fecha+'<br><small style="color:var(--muted)">Recibido: '+r.recibido+'</small>':fecha+' '+hora}</span></div>
       ${r.taxi?`<div class="mcard-row"><span class="mcard-label">Nº Taxi</span><span class="mcard-val">${r.taxi}</span></div>`:''}
       ${r.precio?`<div class="mcard-row"><span class="mcard-label">Precio</span><span class="mcard-val" style="font-weight:600;color:var(--green-dark)">${r.precio} €</span></div>`:''}
       ${acc?`<div class="mcard-footer"><div></div>${acc}</div>`:''}
@@ -688,6 +707,25 @@ function delUser(i){
 // ══════════════════════════════════════════════════════
 //  TOAST
 // ══════════════════════════════════════════════════════
+// Auto-login si hay sesión guardada
+window.addEventListener('load', function() {
+  const saved = localStorage.getItem('mtx_session');
+  if (saved) {
+    try {
+      const found = JSON.parse(saved);
+      // Verificar que el usuario sigue existiendo
+      const existe = getUsers().find(x => x.user === found.user && x.pass === found.pass);
+      if (existe) {
+        document.getElementById('l-user').value = found.user;
+        document.getElementById('l-pass').value = found.pass;
+        doLogin();
+      } else {
+        localStorage.removeItem('mtx_session');
+      }
+    } catch { localStorage.removeItem('mtx_session'); }
+  }
+});
+
 function toast(msg,err){
   const t=document.getElementById('toast');
   t.textContent=msg;t.style.background=err?'#A32D2D':'#1D9E75';
