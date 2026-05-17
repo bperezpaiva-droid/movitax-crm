@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Movitax — CRM</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --green:#1D9E75; --green-dark:#0F6E56; --green-light:#E1F5EE; --green-mid:#9FE1CB;
+  --amber:#BA7517; --amber-light:#FAEEDA;
+  --red:#A32D2D; --red-light:#FCEBEB;
+  --blue:#185FA5; --blue-light:#E6F1FB;
+  --teal-light:#EAF3DE; --teal-text:#3B6D11;
+  --bg:#F7F6F2; --surface:#fff;
+  --border:rgba(0,0,0,0.08); --border-med:rgba(0,0,0,0.14);
+  --text:#1A1A18; --muted:#6B6B67;
+  --r:10px; --rl:14px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;min-height:100vh}
+
+/* ── LOGIN ── */
+#login-page{min-height:100vh;display:flex;align-items:center;justify-content:center;background:#0D1F1A;position:relative;overflow:hidden}
+#login-page::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 50% at 50% 0%,rgba(29,158,117,0.25),transparent 70%);pointer-events:none}
+#login-page::after{content:'';position:absolute;inset:0;background-image:linear-gradient(rgba(29,158,117,0.06) 1px,transparent 1px),linear-gradient(90deg,rgba(29,158,117,0.06) 1px,transparent 1px);background-size:40px 40px;pointer-events:none}
+.lcard{position:relative;z-index:1;background:rgba(255,255,255,0.04);border:1px solid rgba(29,158,117,0.2);border-radius:20px;padding:2.5rem 2rem;width:100%;max-width:380px;backdrop-filter:blur(12px);animation:fadeUp .5s ease both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.llogo{display:flex;align-items:center;gap:10px;margin-bottom:2rem}
+.llogo-icon{width:40px;height:40px;background:var(--green);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px}
+.llogo h1{font-size:20px;font-weight:600;color:#fff;letter-spacing:-.02em}
+.llogo span{display:block;font-size:11px;color:rgba(255,255,255,0.4)}
+.llabel{font-size:11px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,0.4);margin-bottom:6px;display:block}
+.linput{width:100%;height:44px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:var(--r);color:#fff;font-family:'DM Sans',sans-serif;font-size:14px;padding:0 14px;margin-bottom:1rem;transition:border-color .15s}
+.linput:focus{outline:none;border-color:var(--green);background:rgba(29,158,117,0.08)}
+.linput::placeholder{color:rgba(255,255,255,0.2)}
+.lbtn{width:100%;height:44px;background:var(--green);border:none;border-radius:var(--r);color:#fff;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;margin-top:.5rem;transition:background .15s}
+.lbtn:hover{background:var(--green-dark)}
+.lerror{background:rgba(227,75,74,0.15);border:1px solid rgba(227,75,74,0.3);border-radius:var(--r);color:#f99;font-size:13px;padding:10px 14px;margin-top:12px;display:none}
+
+/* ── APP ── */
+#app-page{display:none;min-height:100vh}
+.layout{display:flex;min-height:100vh}
+.sidebar{width:220px;flex-shrink:0;background:#0D1F1A;display:flex;flex-direction:column;padding:1.5rem 1rem;position:fixed;top:0;left:0;bottom:0;z-index:100}
+.slogo{display:flex;align-items:center;gap:8px;padding:0 6px;margin-bottom:2rem}
+.slogo-icon{width:32px;height:32px;background:var(--green);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.slogo span{font-size:15px;font-weight:600;color:#fff}
+.snav{flex:1}
+.snav-label{font-size:10px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,0.25);padding:0 8px;margin-bottom:6px;margin-top:1.25rem}
+.nitem{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:8px;font-size:13px;font-weight:500;color:rgba(255,255,255,0.5);cursor:pointer;transition:all .12s;text-decoration:none;margin-bottom:2px}
+.nitem:hover{background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.8)}
+.nitem.active{background:rgba(29,158,117,0.2);color:var(--green-mid)}
+.nitem .ic{font-size:16px;width:18px;text-align:center}
+.suser{border-top:1px solid rgba(255,255,255,0.06);padding-top:1rem;margin-top:1rem}
+.uinfo{display:flex;align-items:center;gap:8px;padding:0 4px;margin-bottom:8px}
+.uavatar{width:30px;height:30px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:#fff;flex-shrink:0}
+.uname{font-size:13px;font-weight:500;color:rgba(255,255,255,0.7)}
+.urole{font-size:11px;color:rgba(255,255,255,0.3)}
+.logout{display:flex;align-items:center;gap:8px;width:100%;padding:7px 10px;border-radius:8px;background:none;border:none;cursor:pointer;font-size:12px;color:rgba(255,255,255,0.3);font-family:'DM Sans',sans-serif;transition:all .12s}
+.logout:hover{background:rgba(255,0,0,0.08);color:rgba(255,100,100,0.7)}
+
+.main{margin-left:220px;flex:1;padding:2rem}
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.75rem}
+.topbar h2{font-size:20px;font-weight:600;letter-spacing:-.02em}
+.topbar-sub{font-size:12px;color:var(--muted);margin-top:2px}
+.tactions{display:flex;gap:8px;align-items:center}
+
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:1.75rem}
+.scard{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:1.1rem 1.25rem}
+.scard-label{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.scard-label .dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.scard-value{font-size:26px;font-weight:600;letter-spacing:-.03em}
+
+.filters-row{display:flex;gap:8px;align-items:center;margin-bottom:1rem;flex-wrap:wrap}
+.sbox{position:relative;flex:1;min-width:180px}
+.sbox .si{position:absolute;left:11px;top:50%;transform:translateY(-50%);font-size:15px;color:var(--muted)}
+.sbox input{width:100%;height:36px;padding:0 12px 0 34px;border:1px solid var(--border-med);border-radius:var(--r);font-size:13px;background:var(--surface);color:var(--text);font-family:'DM Sans',sans-serif}
+.sbox input:focus{outline:none;border-color:var(--green);box-shadow:0 0 0 3px rgba(29,158,117,0.12)}
+.pill{height:32px;padding:0 14px;border-radius:20px;border:1px solid var(--border-med);background:var(--surface);font-size:12px;font-weight:500;color:var(--muted);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .1s}
+.pill.active{background:var(--green);color:#fff;border-color:var(--green)}
+.pill:hover:not(.active){background:var(--bg);color:var(--text)}
+
+.btn{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 16px;border-radius:var(--r);font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;border:none;transition:all .12s;white-space:nowrap}
+.btn-green{background:var(--green);color:#fff}.btn-green:hover{background:var(--green-dark)}
+.btn-outline{background:var(--surface);color:var(--text);border:1px solid var(--border-med)}.btn-outline:hover{background:var(--bg)}
+.btn-red{background:var(--red);color:#fff}.btn-red:hover{background:#7a2020}
+.btn-sm{height:30px;padding:0 12px;font-size:12px}
+.spin{animation:spin 1s linear infinite;display:inline-block}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Tabla */
+.tcard{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);overflow:hidden}
+.twrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:800px}
+thead{background:var(--bg)}
+th{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);padding:11px 14px;text-align:left;white-space:nowrap}
+td{padding:11px 14px;border-top:1px solid var(--border);font-size:13px;vertical-align:middle;word-break:break-word;line-height:1.4}
+tr:hover td{background:#FAFAF8}
+
+.rnum{font-family:'DM Mono',monospace;font-size:12px;font-weight:500;color:var(--green-dark);background:var(--green-light);padding:2px 8px;border-radius:6px;display:inline-block;white-space:nowrap}
+.badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;white-space:nowrap}
+.badge::before{content:'';width:5px;height:5px;border-radius:50%}
+.b-pendiente{background:var(--amber-light);color:var(--amber)}.b-pendiente::before{background:var(--amber)}
+.b-aceptada{background:var(--blue-light);color:var(--blue)}.b-aceptada::before{background:var(--blue)}
+.b-completada{background:var(--teal-light);color:var(--teal-text)}.b-completada::before{background:var(--teal-text)}
+.b-cancelada{background:var(--red-light);color:var(--red)}.b-cancelada::before{background:var(--red)}
+
+.empty-state{padding:3rem;text-align:center}
+.empty-icon{font-size:40px;margin-bottom:12px;opacity:.3}
+.empty-state p{color:var(--muted);font-size:14px}
+
+/* Modal */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:200;backdrop-filter:blur(4px)}
+.modal{background:var(--surface);border-radius:var(--rl);padding:1.75rem;width:100%;max-width:420px;animation:fadeUp .2s ease}
+.modal h3{font-size:17px;font-weight:600;margin-bottom:.25rem}
+.modal-sub{font-size:13px;color:var(--muted);margin-bottom:1.25rem}
+.mfield{margin-bottom:1rem}
+.mfield label{font-size:11px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:5px}
+.mfield input{width:100%;height:40px;border:1px solid var(--border-med);border-radius:var(--r);padding:0 12px;font-size:14px;font-family:'DM Sans',sans-serif;color:var(--text)}
+.mfield input:focus{outline:none;border-color:var(--green);box-shadow:0 0 0 3px rgba(29,158,117,0.12)}
+.mbtns{display:flex;gap:8px;justify-content:flex-end;margin-top:1.25rem}
+
+/* Admin */
+#admin-page{display:none}
+.sec-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:1.5rem;margin-bottom:1rem}
+.sec-card h3{font-size:15px;font-weight:600;margin-bottom:1rem}
+.urow{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)}
+.urow:last-child{border-bottom:none;padding-bottom:0}
+.urow-av{width:34px;height:34px;border-radius:50%;background:var(--green-light);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:var(--green-dark)}
+.urow-info{flex:1}
+.urow-name{font-size:13px;font-weight:500}
+.urow-meta{font-size:11px;color:var(--muted)}
+.rbadge{font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;text-transform:uppercase;letter-spacing:.04em}
+.r-admin{background:#E6F1FB;color:#185FA5}.r-conductor{background:var(--green-light);color:var(--green-dark)}
+
+#toast{position:fixed;bottom:24px;right:24px;padding:12px 18px;border-radius:var(--r);font-size:13px;font-weight:500;color:#fff;opacity:0;transform:translateY(8px);transition:all .2s;pointer-events:none;z-index:999}
+#toast.show{opacity:1;transform:translateY(0)}
+
+
+/* ── BOTTOM NAV (móvil) ── */
+.bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:#0D1F1A;border-top:1px solid rgba(255,255,255,0.08);z-index:200;padding:8px 0 env(safe-area-inset-bottom,8px)}
+.bottom-nav-inner{display:flex;justify-content:space-around;align-items:center}
+.bnav-item{display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 12px;border-radius:8px;cursor:pointer;color:rgba(255,255,255,0.4);font-size:10px;font-weight:500;font-family:'DM Sans',sans-serif;background:none;border:none;transition:color .15s;min-width:60px}
+.bnav-item.active{color:var(--green-mid)}
+.bnav-item .bic{font-size:20px;line-height:1}
+
+/* Tarjetas móvil */
+.mobile-cards{display:none;flex-direction:column;gap:10px}
+.mcard{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:1rem;cursor:default}
+.mcard-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.mcard-num{font-family:'DM Mono',monospace;font-size:12px;font-weight:500;color:var(--green-dark);background:var(--green-light);padding:2px 8px;border-radius:6px}
+.mcard-row{display:flex;gap:6px;margin-bottom:4px;font-size:13px}
+.mcard-label{font-size:11px;color:var(--muted);font-weight:500;min-width:60px;flex-shrink:0}
+.mcard-val{color:var(--text);word-break:break-word}
+.mcard-footer{display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)}
+
+@media(max-width:768px){
+  .sidebar{display:none}
+  .bottom-nav{display:block}
+  .main{margin-left:0;padding:1rem;padding-bottom:80px}
+  .stats{grid-template-columns:repeat(2,1fr);gap:8px}
+  .scard{padding:.75rem 1rem}
+  .scard-value{font-size:22px}
+  .topbar{margin-bottom:1rem}
+  .topbar h2{font-size:17px}
+  .filters-row{gap:6px}
+  .pill{height:28px;padding:0 10px;font-size:11px}
+  /* Oculta tablas, muestra tarjetas */
+  .tcard{display:none}
+  .mobile-cards{display:flex}
+  /* Modal a pantalla completa en móvil */
+  .modal{max-width:100%;margin:0 1rem}
+  .modal-bg{align-items:flex-end}
+  .modal{border-radius:var(--rl) var(--rl) 0 0;padding:1.5rem 1.25rem}
+  /* Admin grid */
+  .sec-card div[style*="grid-template-columns:1fr 1fr auto auto"]{grid-template-columns:1fr 1fr!important}
+}
+
+</style>
+</head>
+<body>
+
+<!-- ══ LOGIN ══ -->
+<div id="login-page">
+  <div class="lcard">
+    <div class="llogo">
+      <div class="llogo-icon">🚕</div>
+      <div><h1>Movitax</h1><span>Panel de reservas</span></div>
+    </div>
+    <label class="llabel" for="l-user">Usuario</label>
+    <input class="linput" id="l-user" type="text" placeholder="tu.usuario" autocomplete="username">
+    <label class="llabel" for="l-pass">Contraseña</label>
+    <input class="linput" id="l-pass" type="password" placeholder="••••••••" autocomplete="current-password">
+    <button class="lbtn" onclick="doLogin()">Entrar</button>
+    <div class="lerror" id="lerror">Usuario o contraseña incorrectos</div>
+  </div>
+</div>
+
+<!-- ══ APP ══ -->
+<div id="app-page">
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="slogo">
+        <div class="slogo-icon">🚕</div>
+        <span>Movitax</span>
+      </div>
+      <nav class="snav">
+        <div class="snav-label">Principal</div>
+        <a class="nitem active" onclick="showPage('reservas')" id="nav-reservas"><span class="ic">📋</span> Reservas</a>
+        <a class="nitem" onclick="showPage('mis')" id="nav-mis"><span class="ic">🚗</span> Mis servicios</a>
+        <a class="nitem" onclick="showPage('admin')" id="nav-admin" style="display:none"><span class="ic">⚙️</span> Administración</a>
+        <a class="nitem" onclick="abrirSheet()" id="nav-sheet" style="display:none"><span class="ic">📊</span> Google Sheet</a>
+      </nav>
+      <div class="suser">
+        <div class="uinfo">
+          <div class="uavatar" id="ua-av">JF</div>
+          <div><div class="uname" id="ua-name">Jefe</div><div class="urole" id="ua-role">Admin</div></div>
+        </div>
+        <button class="logout" onclick="doLogout()">↩ Cerrar sesión</button>
+      </div>
+    </aside>
+
+    <!-- BOTTOM NAV MÓVIL -->
+    <nav class="bottom-nav">
+      <div class="bottom-nav-inner">
+        <button class="bnav-item active" id="bn-reservas" onclick="showPage('reservas')">
+          <span class="bic">📋</span>Reservas
+        </button>
+        <button class="bnav-item" id="bn-mis" onclick="showPage('mis')">
+          <span class="bic">🚗</span>Mis viajes
+        </button>
+        <button class="bnav-item" id="bn-admin" onclick="showPage('admin')" style="display:none">
+          <span class="bic">⚙️</span>Admin
+        </button>
+      </div>
+    </nav>
+
+    <main class="main">
+
+      <!-- RESERVAS DISPONIBLES -->
+      <div id="reservas-page">
+        <div class="topbar">
+          <div><h2>Reservas disponibles</h2><div class="topbar-sub" id="sync-status">Cargando...</div></div>
+          <div class="tactions">
+            <button class="btn btn-outline" onclick="cargar()"><span id="sync-icon">↻</span> Actualizar</button>
+          </div>
+        </div>
+        <div class="stats">
+          <div class="scard"><div class="scard-label"><span class="dot" style="background:#1D9E75"></span><span id="label-total">Total</span></div><div class="scard-value" id="s-total">—</div></div>
+          <div class="scard"><div class="scard-label"><span class="dot" style="background:#BA7517"></span>Pendientes</div><div class="scard-value" id="s-pend">—</div></div>
+          <div class="scard"><div class="scard-label"><span class="dot" style="background:#185FA5"></span><span id="label-acep">Aceptadas</span></div><div class="scard-value" id="s-acep">—</div></div>
+          <div class="scard"><div class="scard-label"><span class="dot" style="background:#3B6D11"></span><span id="label-comp">Completadas</span></div><div class="scard-value" id="s-comp">—</div></div>
+        </div>
+        <div class="filters-row">
+          <div class="sbox"><span class="si">🔍</span><input type="text" id="q" placeholder="Buscar..." oninput="renderTabla()"></div>
+          <button class="pill active" onclick="setFiltro('todos',this)">Todos</button>
+          <button class="pill" onclick="setFiltro('pendiente',this)">Pendientes</button>
+          <button class="pill admin-only" onclick="setFiltro('aceptada',this)" style="display:none">Aceptadas</button>
+          <button class="pill admin-only" onclick="setFiltro('completada',this)" style="display:none">Completadas</button>
+          <button class="pill admin-only" onclick="setFiltro('cancelada',this)" style="display:none">Canceladas</button>
+        </div>
+        <div class="tcard"><div class="twrap">
+          <table>
+            <thead><tr>
+              <th>Nº reserva</th><th>Recogida</th><th>Destino</th>
+              <th>Fecha</th><th>Hora</th><th>Estado</th><th>Conductor</th><th></th>
+            </tr></thead>
+            <tbody id="tbody"></tbody>
+          </table>
+          <div id="empty" class="empty-state"><div class="empty-icon">📋</div><p>Cargando reservas...</p></div>
+        </div></div>
+        <!-- TARJETAS MÓVIL -->
+        <div class="mobile-cards" id="mobile-cards"></div>
+      </div>
+
+      <!-- MIS SERVICIOS -->
+      <div id="mis-page" style="display:none">
+        <div class="topbar">
+          <div><h2>Mis servicios</h2><div class="topbar-sub">Solo tus reservas aceptadas y completadas</div></div>
+          <div class="tactions"><button class="btn btn-outline" onclick="cargar()">↻ Actualizar</button></div>
+        </div>
+        <div class="filters-row">
+          <button class="pill active" onclick="setFiltroMis('todos',this)">Todos</button>
+          <button class="pill" onclick="setFiltroMis('aceptada',this)">Aceptadas</button>
+          <button class="pill" onclick="setFiltroMis('completada',this)">Completadas</button>
+        </div>
+        <div class="tcard"><div class="twrap">
+          <table>
+            <thead><tr>
+              <th>Nº reserva</th><th>Recogida</th><th>Destino</th>
+              <th>Fecha</th><th>Hora</th><th>Estado</th><th>Nº Taxi</th><th>Precio</th><th></th>
+            </tr></thead>
+            <tbody id="mis-tbody"></tbody>
+          </table>
+          <div id="mis-empty" class="empty-state"><div class="empty-icon">🚗</div><p>No tienes servicios asignados</p></div>
+        </div></div>
+        <!-- TARJETAS MÓVIL MIS SERVICIOS -->
+        <div class="mobile-cards" id="mis-mobile-cards"></div>
+      </div>
+
+      <!-- ADMIN -->
+      <div id="admin-page" style="display:none">
+        <div class="topbar"><h2>Administración</h2></div>
+        <div class="sec-card">
+          <h3>👥 Usuarios</h3>
+          <p style="font-size:12px;color:var(--muted);margin-bottom:1rem">Solo el administrador puede gestionar usuarios.</p>
+          <div id="users-list"></div>
+        </div>
+        <div class="sec-card">
+          <h3>➕ Añadir usuario</h3>
+          <div style="display:grid;grid-template-columns:1fr 1fr auto auto;gap:8px;align-items:end">
+            <div><label style="font-size:11px;font-weight:500;color:var(--muted);display:block;margin-bottom:4px">Usuario</label><input id="nu" type="text" placeholder="nombre" style="width:100%;height:36px;border:1px solid var(--border-med);border-radius:var(--r);padding:0 10px;font-size:13px;font-family:'DM Sans',sans-serif"></div>
+            <div><label style="font-size:11px;font-weight:500;color:var(--muted);display:block;margin-bottom:4px">Contraseña</label><input id="np" type="text" placeholder="contraseña" style="width:100%;height:36px;border:1px solid var(--border-med);border-radius:var(--r);padding:0 10px;font-size:13px;font-family:'DM Sans',sans-serif"></div>
+            <div><label style="font-size:11px;font-weight:500;color:var(--muted);display:block;margin-bottom:4px">Rol</label><select id="nr" style="height:36px;border:1px solid var(--border-med);border-radius:var(--r);padding:0 10px;font-size:13px;font-family:'DM Sans',sans-serif"><option value="conductor">Conductor</option><option value="admin">Admin</option></select></div>
+            <button class="btn btn-green" onclick="addUser()">Añadir</button>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- MODAL COMPLETAR -->
+<div class="modal-bg" id="modal" style="display:none">
+  <div class="modal">
+    <h3>✅ Completar servicio</h3>
+    <div class="modal-sub" id="modal-sub">Reserva nº —</div>
+    <div class="mfield"><label>Número de taxi</label><input id="m-taxi" type="text" placeholder="Ej: T-42"></div>
+    <div class="mfield"><label>Precio cobrado (€)</label><input id="m-precio" type="number" min="0" step="0.01" placeholder="Ej: 18.50"></div>
+    <div class="mbtns">
+      <button class="btn btn-outline" onclick="cerrarModal()">Cancelar</button>
+      <button class="btn btn-green" onclick="confirmarCompletar()">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════════════
+//  CONFIGURACIÓN — pon aquí la URL de tu Web App
+// ══════════════════════════════════════════════════════
+const API_URL = 'https://script.google.com/macros/s/AKfycbyeTzch1STJh6J4kZdALijsJG7LK84MqS2AMW3mc_nB94lLREqxNyzsNheGtFawLeAG2A/exec'; // ej: https://script.google.com/macros/s/XXXX/exec
+
+// ══════════════════════════════════════════════════════
+//  USUARIOS
+// ══════════════════════════════════════════════════════
+const DEFAULT_USERS = [
+  { user:'jefe',      pass:'admin123', role:'admin',     name:'Jefe' },
+  { user:'gijon213',  pass:'taxi000',  role:'conductor', name:'Gijon213' },
+  { user:'taxi114',   pass:'taxi111',  role:'conductor', name:'Taxi114' },
+  { user:'taxi233',   pass:'taxi222',  role:'conductor', name:'Taxi233' },
+  { user:'taxi75',    pass:'taxi333',  role:'conductor', name:'Taxi75' },
+  { user:'taxi255',   pass:'taxi444',  role:'conductor', name:'Taxi255' },
+  { user:'taxi213',   pass:'taxi555',  role:'conductor', name:'Taxi213' },
+  { user:'taxi53',    pass:'taxi777',  role:'conductor', name:'Taxi53' },
+  { user:'taxi8',     pass:'taxi888',  role:'conductor', name:'Taxi8' },
+  { user:'taxi292',   pass:'taxi999',  role:'conductor', name:'Taxi292' },
+  { user:'taxi202',   pass:'taxi666',  role:'conductor', name:'Taxi202' },
+];
+function getUsers() { try{const s=localStorage.getItem('mtx_users');return s?JSON.parse(s):DEFAULT_USERS;}catch{return DEFAULT_USERS;} }
+function saveUsers(u) { localStorage.setItem('mtx_users',JSON.stringify(u)); }
+
+let currentUser = null;
+let reservas    = [];
+let filtro      = 'todos';
+let filtroMis   = 'todos';
+let modalNum    = null;
+
+// ══════════════════════════════════════════════════════
+//  LOGIN
+// ══════════════════════════════════════════════════════
+function doLogin() {
+  const u = document.getElementById('l-user').value.trim().toLowerCase();
+  const p = document.getElementById('l-pass').value;
+  const found = getUsers().find(x=>x.user.toLowerCase()===u && x.pass===p);
+  if (!found) {
+    const e=document.getElementById('lerror'); e.style.display='block';
+    setTimeout(()=>e.style.display='none',3000); return;
+  }
+  currentUser = found;
+  localStorage.setItem('mtx_session', JSON.stringify(found));
+  document.getElementById('login-page').style.display = 'none';
+  document.getElementById('app-page').style.display   = 'block';
+  const ini = found.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+  document.getElementById('ua-av').textContent   = ini;
+  document.getElementById('ua-name').textContent = found.name;
+  document.getElementById('ua-role').textContent = found.role==='admin'?'Administrador':'Conductor';
+  document.getElementById('nav-admin').style.display = found.role==='admin'?'flex':'none';
+  document.getElementById('nav-sheet').style.display = found.role==='admin'?'flex':'none';
+  document.getElementById('bn-admin').style.display  = found.role==='admin'?'flex':'none';
+  document.querySelectorAll('.admin-only').forEach(el => el.style.display = found.role==='admin'?'inline-flex':'none');
+  if(found.role !== 'admin') {
+    document.getElementById('label-total').textContent = 'Disponibles';
+    document.getElementById('label-acep').textContent  = 'Mis aceptadas';
+    document.getElementById('label-comp').textContent  = 'Mis completadas';
+  }
+  cargar();
+}
+document.getElementById('l-pass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+
+function doLogout() {
+  currentUser=null; reservas=[];
+  localStorage.removeItem('mtx_session');
+  document.getElementById('app-page').style.display='none';
+  document.getElementById('login-page').style.display='flex';
+  document.getElementById('l-pass').value='';
+  document.getElementById('l-user').value='';
+}
+
+// ══════════════════════════════════════════════════════
+//  NAVEGACIÓN
+// ══════════════════════════════════════════════════════
+function showPage(p) {
+  if(p==='admin'&&currentUser?.role!=='admin') return;
+  ['reservas','mis','admin'].forEach(id=>{
+    document.getElementById(id+'-page').style.display = p===id?'block':'none';
+  });
+  document.querySelectorAll('.nitem').forEach(n=>n.classList.remove('active'));
+  const ni = document.getElementById('nav-'+p);
+  if(ni) ni.classList.add('active');
+  // bottom nav
+  document.querySelectorAll('.bnav-item').forEach(n=>n.classList.remove('active'));
+  const bn = document.getElementById('bn-'+p);
+  if(bn) bn.classList.add('active');
+  if(p==='admin') renderUsers();
+  if(p==='mis') cargar().then(()=>renderMis());
+}
+
+function abrirSheet() {
+  // El Sheet ID está en el backend, abrimos la Sheet directamente
+  const id = '1RqtHgVusEPVxL5MO3xZIJ1ukkiTCjKO6IisY1jG66g0';
+  window.open('https://docs.google.com/spreadsheets/d/'+id+'/edit','_blank');
+}
+
+// ══════════════════════════════════════════════════════
+//  API
+// ══════════════════════════════════════════════════════
+async function api(params) {
+  const url = API_URL + '?' + new URLSearchParams(params).toString();
+  const res  = await fetch(url);
+  return res.json();
+}
+
+async function cargar() {
+  const icon = document.getElementById('sync-icon');
+  icon.classList.add('spin');
+  try {
+    const data = await api({accion:'listar'});
+    if (!data.ok) throw new Error(data.error);
+    reservas = data.reservas;
+    const ahora = new Date().toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});
+    document.getElementById('sync-status').textContent = `Actualizado a las ${ahora} · ${reservas.length} reservas`;
+    renderTabla();
+    if(document.getElementById('mis-page').style.display==='block') renderMis();
+    toast(`${reservas.length} reservas cargadas`);
+  } catch(e) {
+    document.getElementById('sync-status').textContent = 'Error al cargar';
+    toast('Error al conectar con el backend. ¿Está publicado el script?', true);
+  }
+  icon.classList.remove('spin');
+}
+
+async function aceptar(num) {
+  try {
+    const data = await api({accion:'aceptar', num, conductor: currentUser.name});
+    if (!data.ok) { toast(data.error, true); return; }
+    toast('Reserva aceptada ✓');
+    await cargar();
+  } catch { toast('Error al aceptar', true); }
+}
+
+async function cancelar(num) {
+  if (!confirm('¿Seguro que quieres cancelar la reserva ' + num + '?')) return;
+  try {
+    const data = await api({accion:'cancelar', num, conductor: currentUser.name});
+    if (!data.ok) { toast(data.error, true); return; }
+    toast('Reserva cancelada');
+    await cargar();
+  } catch { toast('Error al cancelar', true); }
+}
+
+async function confirmarCompletar() {
+  const taxi   = document.getElementById('m-taxi').value.trim();
+  const precio = document.getElementById('m-precio').value.trim();
+  if (!taxi || !precio) { toast('Rellena taxi y precio', true); return; }
+  try {
+    const data = await api({accion:'completar', num:modalNum, taxi, precio});
+    if (!data.ok) { toast(data.error, true); return; }
+    cerrarModal();
+    toast('Servicio completado ✓');
+    await cargar();
+  } catch { toast('Error al completar', true); }
+}
+
+// ══════════════════════════════════════════════════════
+//  TABLAS
+// ══════════════════════════════════════════════════════
+function setFiltro(f,btn) {
+  filtro=f;
+  document.querySelectorAll('#reservas-page .pill').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  renderTabla();
+}
+
+function setFiltroMis(f,btn) {
+  filtroMis=f;
+  document.querySelectorAll('#mis-page .pill').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  renderMis();
+}
+
+function parseFechaHora(fh) {
+  if (!fh) return { fecha: '', hora: '' };
+  // Si es "Lo antes posible" no separar
+  if (fh.toUpperCase().includes('ANTES')) return { fecha: fh, hora: '' };
+  // "dd/MM/yyyy HH:mm"
+  const p = fh.split(' ');
+  return { fecha: p[0]||'', hora: p[1]||'' };
+}
+
+function renderTabla() {
+  const q=(document.getElementById('q').value||'').toLowerCase();
+  const esAdmin = currentUser.role==='admin';
+  const datos=reservas.filter(r=>{
+    const est=r.estado.toLowerCase();
+    // Conductores solo ven pendientes
+    if(!esAdmin && (est==='aceptada'||est==='completada'||est==='cancelada')) return false;
+    const okF=filtro==='todos'||(filtro==='pendiente'&&est==='pendiente')||(filtro==='aceptada'&&est==='aceptada')||(filtro==='completada'&&est==='completada')||(filtro==='cancelada'&&est==='cancelada');
+    const okQ=!q||r.num.includes(q)||r.recogida.toLowerCase().includes(q)||r.destino.toLowerCase().includes(q);
+    return okF&&okQ;
+  }).sort((a,b)=>{
+    // "Lo antes posible" siempre primero
+    const aAntes = (a.fechaHora||'').toLowerCase().includes('antes');
+    const bAntes = (b.fechaHora||'').toLowerCase().includes('antes');
+    if(aAntes && !bAntes) return -1;
+    if(!aAntes && bAntes) return 1;
+    // Luego por fecha ascendente
+    const parseFecha = fh => {
+      if(!fh) return Infinity;
+      // formato dd/MM/yyyy HH:mm
+      const m = fh.match(/(\d{2})\/(\d{2})\/(\d{4})\s*(\d{2}):(\d{2})/);
+      if(!m) return Infinity;
+      return new Date(m[3], m[2]-1, m[1], m[4], m[5]).getTime();
+    };
+    return parseFecha(a.fechaHora) - parseFecha(b.fechaHora);
+  });
+
+  if(esAdmin) {
+    document.getElementById('s-total').textContent = reservas.length||'0';
+    document.getElementById('s-pend').textContent  = reservas.filter(r=>r.estado.toLowerCase()==='pendiente').length;
+    document.getElementById('s-acep').textContent  = reservas.filter(r=>r.estado.toLowerCase()==='aceptada').length;
+    document.getElementById('s-comp').textContent  = reservas.filter(r=>r.estado.toLowerCase()==='completada').length;
+  } else {
+    const mios = reservas.filter(r=>r.conductor===currentUser.name);
+    document.getElementById('s-total').textContent = reservas.filter(r=>['pendiente','aceptada'].includes(r.estado.toLowerCase())).length||'0';
+    document.getElementById('s-pend').textContent  = reservas.filter(r=>r.estado.toLowerCase()==='pendiente').length;
+    document.getElementById('s-acep').textContent  = mios.filter(r=>r.estado.toLowerCase()==='aceptada').length;
+    document.getElementById('s-comp').textContent  = mios.filter(r=>r.estado.toLowerCase()==='completada').length;
+  }
+
+  const tbody=document.getElementById('tbody');
+  const empty=document.getElementById('empty');
+  if(datos.length===0){tbody.innerHTML='';empty.style.display='block';empty.innerHTML='<div class="empty-icon">🔍</div><p>No hay reservas con estos filtros</p>';return;}
+  empty.style.display='none';
+
+  tbody.innerHTML=datos.map(r=>{
+    const est=r.estado.toLowerCase();
+    const bc=est==='completada'?'b-completada':est==='aceptada'?'b-aceptada':est==='cancelada'?'b-cancelada':'b-pendiente';
+    const label=r.estado;
+    const {fecha,hora}=parseFechaHora(r.fechaHora);
+    const esMio = r.conductor === currentUser.name;
+
+    let acciones = '';
+    if(est==='pendiente') {
+      acciones = `<button class="btn btn-green btn-sm" onclick="aceptar('${r.num}')">Aceptar</button>
+                  <button class="btn btn-red btn-sm" style="margin-left:4px" onclick="cancelar('${r.num}')">Cancelar</button>`;
+    } else if(est==='aceptada' && (esMio||esAdmin)) {
+      acciones = `<button class="btn btn-outline btn-sm" onclick="abrirModal('${r.num}')">Completar</button>
+                  <button class="btn btn-red btn-sm" style="margin-left:4px" onclick="cancelar('${r.num}')">Cancelar</button>`;
+    }
+
+    return `<tr>
+      <td><span class="rnum">${r.num}</span></td>
+      <td>${r.recogida||'—'}</td>
+      <td>${r.destino||'—'}</td>
+      <td style="white-space:nowrap">${fecha||'—'}</td>
+      <td style="white-space:nowrap">${hora||'—'}</td>
+      <td><span class="badge ${bc}">${label}</span></td>
+      <td style="font-size:12px;color:var(--muted)">${r.conductor||'—'}</td>
+      <td>${acciones}</td>
+    </tr>`;
+  }).join('');
+
+  // Tarjetas móvil
+  const mc = document.getElementById('mobile-cards');
+  if(mc) mc.innerHTML = datos.map(r=>{
+    const est=r.estado.toLowerCase();
+    const bc=est==='completada'?'b-completada':est==='aceptada'?'b-aceptada':est==='cancelada'?'b-cancelada':'b-pendiente';
+    const {fecha,hora}=parseFechaHora(r.fechaHora);
+    const esMio=r.conductor===currentUser.name;
+    let acc='';
+    if(est==='pendiente') acc=`<button class="btn btn-green btn-sm" onclick="aceptar('${r.num}')">✓ Aceptar</button>
+      <button class="btn btn-red btn-sm" style="margin-left:4px" onclick="cancelar('${r.num}')">Cancelar</button>`;
+    else if(est==='aceptada'&&(esMio||esAdmin)) acc=`<button class="btn btn-outline btn-sm" onclick="abrirModal('${r.num}')">Completar</button>
+      <button class="btn btn-red btn-sm" style="margin-left:4px" onclick="cancelar('${r.num}')">Cancelar</button>`;
+    return `<div class="mcard">
+      <div class="mcard-header"><span class="mcard-num">${r.num}</span><span class="badge ${bc}">${r.estado}</span></div>
+      <div class="mcard-row"><span class="mcard-label">Recogida</span><span class="mcard-val">${r.recogida||'—'}</span></div>
+      <div class="mcard-row"><span class="mcard-label">Destino</span><span class="mcard-val">${r.destino||'—'}</span></div>
+      <div class="mcard-row"><span class="mcard-label">Fecha</span><span class="mcard-val">${fecha} ${hora}</span></div>
+      ${r.conductor?`<div class="mcard-row"><span class="mcard-label">Conductor</span><span class="mcard-val">${r.conductor}</span></div>`:''}
+      ${acc?`<div class="mcard-footer"><div></div>${acc}</div>`:''}
+    </div>`;
+  }).join('');
+}
+
+function renderMis() {
+  const todos = reservas.filter(r=>r.conductor===currentUser.name || currentUser.role==='admin');
+  const mios  = filtroMis==='todos' ? todos : todos.filter(r=>r.estado.toLowerCase()===filtroMis);
+  const tbody=document.getElementById('mis-tbody');
+  const empty=document.getElementById('mis-empty');
+  empty.style.display='none';
+  if(mios.length===0){tbody.innerHTML='';empty.style.display='block';return;}
+  tbody.innerHTML=mios.map(r=>{
+    const est=r.estado.toLowerCase();
+    const bc=est==='completada'?'b-completada':est==='aceptada'?'b-aceptada':'b-pendiente';
+    const {fecha,hora}=parseFechaHora(r.fechaHora);
+    let acc='';
+    if(est==='aceptada') acc=`<button class="btn btn-outline btn-sm" onclick="abrirModal('${r.num}')">Completar</button>`;
+    return `<tr>
+      <td><span class="rnum">${r.num}</span></td>
+      <td>${r.recogida||'—'}</td><td>${r.destino||'—'}</td>
+      <td style="white-space:nowrap">${fecha||'—'}</td>
+      <td style="white-space:nowrap">${hora||'—'}</td>
+      <td><span class="badge ${bc}">${r.estado}</span></td>
+      <td style="font-size:12px">${r.taxi||'—'}</td>
+      <td style="font-size:12px;font-weight:500">${r.precio?r.precio+' €':'—'}</td>
+      <td>${acc}</td>
+    </tr>`;
+  }).join('');
+
+  // Tarjetas móvil mis servicios
+  const mc2 = document.getElementById('mis-mobile-cards');
+  if(mc2) mc2.innerHTML = todos.length===0 ? '' : mios.map(r=>{
+    const est=r.estado.toLowerCase();
+    const bc=est==='completada'?'b-completada':est==='aceptada'?'b-aceptada':'b-pendiente';
+    const {fecha,hora}=parseFechaHora(r.fechaHora);
+    let acc='';
+    if(est==='aceptada') acc=`<button class="btn btn-green btn-sm" onclick="abrirModal('${r.num}')">Completar servicio</button>`;
+    return `<div class="mcard">
+      <div class="mcard-header"><span class="mcard-num">${r.num}</span><span class="badge ${bc}">${r.estado}</span></div>
+      <div class="mcard-row"><span class="mcard-label">Recogida</span><span class="mcard-val">${r.recogida||'—'}</span></div>
+      <div class="mcard-row"><span class="mcard-label">Destino</span><span class="mcard-val">${r.destino||'—'}</span></div>
+      <div class="mcard-row"><span class="mcard-label">Fecha</span><span class="mcard-val">${fecha} ${hora}</span></div>
+      ${r.taxi?`<div class="mcard-row"><span class="mcard-label">Nº Taxi</span><span class="mcard-val">${r.taxi}</span></div>`:''}
+      ${r.precio?`<div class="mcard-row"><span class="mcard-label">Precio</span><span class="mcard-val" style="font-weight:600;color:var(--green-dark)">${r.precio} €</span></div>`:''}
+      ${acc?`<div class="mcard-footer"><div></div>${acc}</div>`:''}
+    </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════════════
+//  MODAL
+// ══════════════════════════════════════════════════════
+function abrirModal(num) {
+  modalNum = num;
+  document.getElementById('modal-sub').textContent = 'Reserva nº ' + num;
+  document.getElementById('m-taxi').value   = '';
+  document.getElementById('m-precio').value = '';
+  document.getElementById('modal').style.display = 'flex';
+}
+function cerrarModal() {
+  document.getElementById('modal').style.display = 'none';
+  modalNum = null;
+}
+
+// ══════════════════════════════════════════════════════
+//  ADMIN — USUARIOS
+// ══════════════════════════════════════════════════════
+function renderUsers() {
+  document.getElementById('users-list').innerHTML=getUsers().map((u,i)=>`
+    <div class="urow">
+      <div class="urow-av">${u.name.slice(0,2).toUpperCase()}</div>
+      <div class="urow-info">
+        <div class="urow-name">${u.name} <code style="font-size:11px;color:var(--muted)">@${u.user}</code></div>
+        <div class="urow-meta">Contraseña: <code>${u.pass}</code></div>
+      </div>
+      <span class="rbadge ${u.role==='admin'?'r-admin':'r-conductor'}">${u.role}</span>
+      ${u.user!=='jefe'?`<button onclick="delUser(${i})" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:16px;padding:4px 6px;border-radius:6px">🗑</button>`:''}
+    </div>`).join('');
+}
+function addUser(){
+  const u=document.getElementById('nu').value.trim();
+  const p=document.getElementById('np').value.trim();
+  const role=document.getElementById('nr').value;
+  if(!u||!p){toast('Rellena usuario y contraseña',true);return;}
+  const users=getUsers();
+  if(users.find(x=>x.user.toLowerCase()===u.toLowerCase())){toast('Ya existe',true);return;}
+  users.push({user:u,pass:p,role,name:u.charAt(0).toUpperCase()+u.slice(1)});
+  saveUsers(users);
+  document.getElementById('nu').value='';document.getElementById('np').value='';
+  renderUsers(); toast('Usuario añadido');
+}
+function delUser(i){
+  const users=getUsers();
+  if(users[i].role==='admin'&&users.filter(u=>u.role==='admin').length===1){toast('Debe haber al menos un admin',true);return;}
+  users.splice(i,1);saveUsers(users);renderUsers();toast('Usuario eliminado');
+}
+
+// ══════════════════════════════════════════════════════
+//  TOAST
+// ══════════════════════════════════════════════════════
+// Auto-login si hay sesión guardada
+window.addEventListener('load', function() {
+  const saved = localStorage.getItem('mtx_session');
+  if (saved) {
+    try {
+      const found = JSON.parse(saved);
+      // Verificar que el usuario sigue existiendo
+      const existe = getUsers().find(x => x.user === found.user && x.pass === found.pass);
+      if (existe) {
+        document.getElementById('l-user').value = found.user;
+        document.getElementById('l-pass').value = found.pass;
+        doLogin();
+      } else {
+        localStorage.removeItem('mtx_session');
+      }
+    } catch { localStorage.removeItem('mtx_session'); }
+  }
+});
+
+function toast(msg,err){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.style.background=err?'#A32D2D':'#1D9E75';
+  t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);
+}
+</script>
+</body>
+</html>
