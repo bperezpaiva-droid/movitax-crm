@@ -288,7 +288,7 @@ tr:hover td{background:#FAFAF8}
           <table>
             <thead><tr>
               <th>Nº reserva</th><th>Recogida</th><th>Destino</th>
-              <th>Fecha</th><th>Hora</th><th>Estado</th><th>Nº Taxi</th><th>Precio</th><th></th>
+              <th>Fecha</th><th>Hora</th><th>Estado</th><th>Pasajero</th><th>Nº Taxi</th><th>Precio</th><th></th>
             </tr></thead>
             <tbody id="mis-tbody"></tbody>
           </table>
@@ -313,6 +313,22 @@ tr:hover td{background:#FAFAF8}
   </div>
 </div>
 
+<!-- MODAL ACEPTAR -->
+<div class="modal-bg" id="modal-aceptar" style="display:none">
+  <div class="modal">
+    <h3>🚕 Aceptar servicio</h3>
+    <div class="modal-sub" id="modal-aceptar-sub">Reserva nº —</div>
+    <div class="mfield">
+      <label>Nombre del pasajero <span style="color:var(--muted);font-weight:400">(opcional)</span></label>
+      <input id="m-pasajero" type="text" placeholder="Ej: Juan García">
+    </div>
+    <div class="mbtns">
+      <button class="btn btn-outline" onclick="cerrarModalAceptar()">Cancelar</button>
+      <button class="btn btn-green" onclick="confirmarAceptar()">Aceptar servicio</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL COMPLETAR -->
 <div class="modal-bg" id="modal" style="display:none">
   <div class="modal">
@@ -333,7 +349,7 @@ tr:hover td{background:#FAFAF8}
 // ══════════════════════════════════════════════════════
 //  CONFIGURACIÓN — pon aquí la URL de tu Web App
 // ══════════════════════════════════════════════════════
-const API_URL = 'https://script.google.com/macros/s/AKfycbyeTzch1STJh6J4kZdALijsJG7LK84MqS2AMW3mc_nB94lLREqxNyzsNheGtFawLeAG2A/exec'; // ej: https://script.google.com/macros/s/XXXX/exec
+const API_URL = 'https://script.google.com/macros/s/AKfycbyNAVuUst5CE_wa6yfu8E88WmQGeHm45VPehTPRsuHe4JwPltHavAHJJcfBasH0ts8NYQ/exec'; // ej: https://script.google.com/macros/s/XXXX/exec
 
 // ══════════════════════════════════════════════════════
 //  USUARIOS
@@ -454,10 +470,26 @@ async function cargar() {
   icon.classList.remove('spin');
 }
 
-async function aceptar(num) {
+let modalAceptarNum = null;
+
+function aceptar(num) {
+  modalAceptarNum = num;
+  document.getElementById('modal-aceptar-sub').textContent = 'Reserva nº ' + num;
+  document.getElementById('m-pasajero').value = '';
+  document.getElementById('modal-aceptar').style.display = 'flex';
+}
+
+function cerrarModalAceptar() {
+  document.getElementById('modal-aceptar').style.display = 'none';
+  modalAceptarNum = null;
+}
+
+async function confirmarAceptar() {
+  const pasajero = document.getElementById('m-pasajero').value.trim();
   try {
-    const data = await api({accion:'aceptar', num, conductor: currentUser.name});
+    const data = await api({accion:'aceptar', num: modalAceptarNum, conductor: currentUser.name, pasajero});
     if (!data.ok) { toast(data.error, true); return; }
+    cerrarModalAceptar();
     toast('Reserva aceptada ✓');
     await cargar();
   } catch { toast('Error al aceptar', true); }
@@ -623,13 +655,15 @@ function renderMis() {
     const bc=est==='completada'?'b-completada':est==='aceptada'?'b-aceptada':'b-pendiente';
     const {fecha,hora}=parseFechaHora(r.fechaHora);
     let acc='';
-    if(est==='aceptada') acc=`<button class="btn btn-outline btn-sm" onclick="abrirModal('${r.num}')">Completar</button>`;
+    if(est==='aceptada') acc=`<button class="btn btn-outline btn-sm" onclick="abrirModal('${r.num}')">Completar</button>
+      <button class="btn btn-red btn-sm" style="margin-left:4px" onclick="cancelar('${r.num}')">Cancelar</button>`;
     return `<tr>
       <td><span class="rnum">${r.num}</span></td>
       <td>${r.recogida||'—'}</td><td>${r.destino||'—'}</td>
       <td style="white-space:nowrap">${fecha||'—'}</td>
       <td style="white-space:nowrap">${hora||'—'}</td>
       <td><span class="badge ${bc}">${r.estado}</span></td>
+      <td style="font-size:12px">${r.pasajero||'—'}</td>
       <td style="font-size:12px">${r.taxi||'—'}</td>
       <td style="font-size:12px;font-weight:500">${r.precio?r.precio+' €':'—'}</td>
       <td>${acc}</td>
@@ -643,7 +677,8 @@ function renderMis() {
     const bc=est==='completada'?'b-completada':est==='aceptada'?'b-aceptada':'b-pendiente';
     const {fecha,hora}=parseFechaHora(r.fechaHora);
     let acc='';
-    if(est==='aceptada') acc=`<button class="btn btn-green btn-sm" onclick="abrirModal('${r.num}')">Completar servicio</button>`;
+    if(est==='aceptada') acc=`<button class="btn btn-green btn-sm" onclick="abrirModal('${r.num}')">Completar</button>
+      <button class="btn btn-red btn-sm" style="margin-left:4px" onclick="cancelar('${r.num}')">Cancelar</button>`;
     return `<div class="mcard">
       <div class="mcard-header"><span class="mcard-num">${r.num}</span><span class="badge ${bc}">${r.estado}</span></div>
       <div class="mcard-row"><span class="mcard-label">Recogida</span><span class="mcard-val">${r.recogida||'—'}</span></div>
